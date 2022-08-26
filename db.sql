@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS pending_products (
+id INT AUTO INCREMENT,
+steamid VARCHAR(255) NOT NULL,
+command VARCHAR(255) NOT NULL
+)
