@@ -4,7 +4,7 @@ TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 local r = Router.new()
 r:Post("/add", function(req, res)
     
-    if(not req:Body().command or not req:Body().token or not req:Body().steamid) then
+    if(not req:Body().products or not req:Body().token or not req:Body().steamid) then
         res:Send("Missing parameters")
     else
 
@@ -15,12 +15,18 @@ r:Post("/add", function(req, res)
                 check_player_online(req:Body().steamid, function(isOnline, id)
                     
                     if isOnline then
-                       
-                        give_product(id, req:Body().steamid, req:Body().command)
+                        
+                        for _,v in pairs(req:Body().products) do
+                            give_product(id, req:Body().steamid, v)
+                        end
+
+                        show_notification(id)
                         res:Send("The player is online and has received the product", 200)
                     else
                         
-                        addProduct(req:Body().steamid, req:Body().command)
+                        for _,v in pairs(req:Body().products) do
+                            addProduct(req:Body().steamid, v)
+                        end
                         res:Send("Added to the pending products", 200)
                     end
                 end)
@@ -45,6 +51,7 @@ AddEventHandler('esx:playerLoaded', function(playerData)
         ["@id"] = steamid
     },function(result)
         if result then
+            
             for k,v in pairs(result) do
                 give_product(id, steamid, v.command)
                 MySQL.single("DELETE FROM pending_products WHERE id = @id", {
@@ -52,15 +59,23 @@ AddEventHandler('esx:playerLoaded', function(playerData)
                 })
                 Citizen.Wait(500)
             end
+            show_notification(id)
     end
     end)
     
 end)
+function show_notification(id)
+    local xPlayer = ESX.GetPlayerFromId(id)
+    xPlayer.showNotification("¡Gracias por su compra! Revise su inventario para ver los objetos, en caso de tener algún problema contacte con el staff.")
+
+end
+
 
 function give_product(id, steam, command)
     ExecuteCommand(string.format(command, id))
     print(string.format("^3EXECUTING COMMAND -> %s",string.format(command, id)))
     print(string.format("^3Steam: %s",steam))
+   
 end
 
 function check_player_online(steamid, callback)
