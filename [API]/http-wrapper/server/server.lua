@@ -1,3 +1,7 @@
+--- This script is from
+--- https://github.com/Cyntaax/fivem-http-wrapper
+
+
 
 Server = {
     Routes = {},
